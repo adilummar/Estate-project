@@ -1,4 +1,25 @@
 {
+  "name": "restarted-mern-project",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev":"nodemon api/index.js",
+    "start":"node api/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adilummar/Estate-project.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/adilummar/Estate-project/issues"
+  },
+  "homepage": "https://github.com/adilummar/Estate-project#readme",
+  "description": "",
   "dependencies": {
+    "express": "^4.21.2",
+    "nodemon": "^3.1.9"
   }
 }
