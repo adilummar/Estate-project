@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import OAuth from "../component/OAuth";
+import { useDispatch, useSelector } from "react-redux";
+import { signInFailure, signInStart, signInSuccess } from "../redux/user/userSlice";
 
 export default function SignUp() {
   const [formData, setFormData] = useState({});
-  const [loading, setLoading] = useState(null);
-  const [error, setError] = useState(false);
+  const { error, loading } = useSelector((state) => state.user);
   const navigate = useNavigate();
+  const dispatch = useDispatch()
 
   const handleChange = (e) => {
     setFormData({
@@ -18,7 +21,7 @@ export default function SignUp() {
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    dispatch(signInStart())
     console.log("form submitted");
     try {
       const res = await fetch("/api/auth/signup", {
@@ -36,12 +39,10 @@ export default function SignUp() {
       // console.log("data");
       const data = await res.json();
       console.log(data);
-      setLoading(false);
-      setError(null);
+      dispatch(signInSuccess(data))
       navigate("/sign-in");
     } catch (error) {
-      setLoading(false);
-      setError(error.message);
+      dispatch(signInFailure(error))
     }
   };
 
@@ -77,6 +78,7 @@ export default function SignUp() {
         >
           {loading ? "loading" : "sign up"}
         </button>
+        <OAuth />
       </form>
       <div className="flex mt-5">
         <p>have an accout ? </p>
