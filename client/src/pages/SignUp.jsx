@@ -3,13 +3,17 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import OAuth from "../component/OAuth";
 import { useDispatch, useSelector } from "react-redux";
-import { signInFailure, signInStart, signInSuccess } from "../redux/user/userSlice";
+import {
+  signInFailure,
+  signInStart,
+  signInSuccess,
+} from "../redux/user/userSlice";
 
 export default function SignUp() {
   const [formData, setFormData] = useState({});
   const { error, loading } = useSelector((state) => state.user);
   const navigate = useNavigate();
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     setFormData({
@@ -21,7 +25,7 @@ export default function SignUp() {
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
-    dispatch(signInStart())
+    dispatch(signInStart());
     console.log("form submitted");
     try {
       const res = await fetch("/api/auth/signup", {
@@ -39,10 +43,10 @@ export default function SignUp() {
       // console.log("data");
       const data = await res.json();
       console.log(data);
-      dispatch(signInSuccess(data))
+      dispatch(signInSuccess(data));
       navigate("/sign-in");
     } catch (error) {
-      dispatch(signInFailure(error))
+      dispatch(signInFailure(error));
     }
   };
 
@@ -83,10 +87,16 @@ export default function SignUp() {
       <div className="flex mt-5">
         <p>have an accout ? </p>
         <Link to={"/sign-in"}>
-          <span className="text-slate-900"> sign in </span>
+          <span className="text-slate-900">sign in</span>
         </Link>
       </div>
-      {error ? <p className="text-red-500">{error}</p> : ""}
+      {error ? (
+        <p className="text-red-500">
+          {typeof error === "string" ? error : JSON.stringify(error)}
+        </p>
+      ) : (
+        ""
+      )}
     </div>
   );
 }
