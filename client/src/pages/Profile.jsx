@@ -2,10 +2,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { useRef, useState } from "react";
 import axios from "axios";
 import {
+  deleteUserFailure,
+  deleteUserStart,
+  deleteUserSuccess,
   updateFailure,
   updateStart,
   updateSuccess,
 } from "../redux/user/userSlice";
+import { useNavigate } from "react-router-dom";
 // import { cloudinaryConfig } from "../../../api/cloudinary/cloudinary.js";
 
 export default function Profile() {
@@ -14,9 +18,10 @@ export default function Profile() {
   const [onUploadProgress, setonUploadProgress] = useState(0);
   const { currentUser, loading, error } = useSelector((state) => state.user);
   const [formData, setFormData] = useState({});
-  const [userCreated,setUserCreated] = useState(false)
+  const [userCreated, setUserCreated] = useState(false);
   const fileRef = useRef(null);
   const dispatch = useDispatch();
+  const navigate = useNavigate()
 
   const imagePreview = (file) => {
     const reader = new FileReader();
@@ -103,9 +108,28 @@ export default function Profile() {
         return;
       }
       dispatch(updateSuccess(data));
-      setUserCreated(true)
+      setUserCreated(true);
     } catch (error) {
       dispatch(updateFailure(error.message));
+    }
+  };
+
+  const handleUserDelete = async () => {
+    try {
+      dispatch(deleteUserStart());
+      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+        method: "DELETE",
+        
+      });
+      const data = await res.json();
+      if (data.success === false) {
+        dispatch(deleteUserFailure(data.message));
+        return
+      }
+      dispatch(deleteUserSuccess(data));
+      navigate('/sign-in')
+    } catch (error) {
+      dispatch(deleteUserFailure(error.message));
     }
   };
 
@@ -167,12 +191,19 @@ export default function Profile() {
         </button>
       </form>
       <div className="flex justify-between mt-5">
-        <span className="text-red-700 cursor-pointer">Delete Account</span>
+        <span
+          onClick={handleUserDelete}
+          className="text-red-700 cursor-pointer"
+        >
+          Delete Account
+        </span>
         <span className="text-red-700 cursor-pointer">Sign Out</span>
       </div>
 
-      <p className="text-red-700 mt-5">{error ? error.message : ''}</p>
-      <p className="text-green-700 mt-5">{userCreated ? 'user updated successfuly' : ''}</p>
+      <p className="text-red-700 mt-5">{error ? error.message : ""}</p>
+      <p className="text-green-700 mt-5">
+        {userCreated ? "user updated successfuly" : ""}
+      </p>
     </div>
   );
 }
