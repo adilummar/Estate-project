@@ -8,6 +8,9 @@ import {
   updateFailure,
   updateStart,
   updateSuccess,
+  userSignOutFailure,
+  userSignOutStart,
+  userSignOutSuccess,
 } from "../redux/user/userSlice";
 import { useNavigate } from "react-router-dom";
 // import { cloudinaryConfig } from "../../../api/cloudinary/cloudinary.js";
@@ -21,7 +24,7 @@ export default function Profile() {
   const [userCreated, setUserCreated] = useState(false);
   const fileRef = useRef(null);
   const dispatch = useDispatch();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const imagePreview = (file) => {
     const reader = new FileReader();
@@ -119,17 +122,32 @@ export default function Profile() {
       dispatch(deleteUserStart());
       const res = await fetch(`/api/user/delete/${currentUser._id}`, {
         method: "DELETE",
-        
       });
       const data = await res.json();
       if (data.success === false) {
         dispatch(deleteUserFailure(data.message));
-        return
+        return;
       }
       dispatch(deleteUserSuccess(data));
-      navigate('/sign-in')
+      navigate("/sign-in");
     } catch (error) {
       dispatch(deleteUserFailure(error.message));
+    }
+  };
+
+  const userSignOut = async () => {
+    dispatch(userSignOutStart());
+    try {
+      const res = await fetch("/api/auth/signout");
+      const data = res.json();
+      if (data.success === false) {
+        dispatch(userSignOutFailure(data.message));
+        return;
+      }
+      dispatch(userSignOutSuccess(data));
+      navigate('/sign-in')
+    } catch (error) {
+      dispatch(userSignOutFailure(error.message));
     }
   };
 
@@ -197,7 +215,9 @@ export default function Profile() {
         >
           Delete Account
         </span>
-        <span className="text-red-700 cursor-pointer">Sign Out</span>
+        <span onClick={userSignOut} className="text-red-700 cursor-pointer">
+          Sign Out
+        </span>
       </div>
 
       <p className="text-red-700 mt-5">{error ? error.message : ""}</p>
