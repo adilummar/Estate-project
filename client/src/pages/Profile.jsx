@@ -12,7 +12,7 @@ import {
   userSignOutStart,
   userSignOutSuccess,
 } from "../redux/user/userSlice";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 // import { cloudinaryConfig } from "../../../api/cloudinary/cloudinary.js";
 
 export default function Profile() {
@@ -207,6 +207,7 @@ export default function Profile() {
         >
           {loading ? "loading" : "update"}
         </button>
+        <Link to={'/create-listing'} className="bg-green-800 text-white p-3 rounded-lg uppercase text-center hover:opacity-95">Create listing</Link>
       </form>
       <div className="flex justify-between mt-5">
         <span
