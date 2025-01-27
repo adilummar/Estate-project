@@ -22,3 +22,15 @@ export const imageUpload = async (req, res, next) => {
     next(error);
   }
 };
+
+// export const listingImage = (req,res,next)=>{
+//   const {email,image} = req.body;
+
+//   if(!email || !image){
+//     return res.status(400).json("image not found");
+//   }
+
+
+
+
+// }

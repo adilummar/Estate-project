@@ -1,4 +1,104 @@
+import axios from "axios";
+import { useState } from "react";
+
 export default function CreateListing() {
+  const [file, setFile] = useState([]);
+  const [progress, setProgress] = useState([]);
+  const [uploadingStatus, setUploadingStatus] = useState("");
+  const [imageUploadError, setImageUploadError] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [formData, setFormData] = useState({
+    imageUrls: [],
+  });
+  // console.log(file);
+
+  const handleFileChange = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    if (selectedFiles.length > 0 && selectedFiles.length <= 6) {
+      setFile(selectedFiles);
+      setProgress(Array(selectedFiles.length).fill(0));
+    } else {
+      setImageUploadError("you can only upload 6 images per listing");
+    }
+  };
+
+  const storeImage = (file, index) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", "profile");
+
+        const res = await axios.post(
+          "https://api.cloudinary.com/v1_1/dmcaonkhk/image/upload",
+          formData,
+          {
+            onUploadProgress: (progressEvent) => {
+              const precentCompleted = Math.round(
+                (progressEvent.loaded / progressEvent.total) * 100
+              );
+              setProgress((prevProgress) => {
+                const updatedProgress = [...prevProgress];
+                updatedProgress[index] = precentCompleted;
+                return updatedProgress;
+              });
+            },
+          }
+        );
+
+        resolve(res.data.url);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+  const handleImageSubmit = () => {
+    if (file.length === 0) {
+      // alert("Please select Images first....!");
+      setImageUploadError("no image updated");
+      return;
+    }
+
+    setUploadingStatus("Uploading image ....");
+
+    try {
+      setUploading(true);
+      const promises = file.map((file, index) => storeImage(file, index));
+      Promise.all(promises).then((urls) => {
+        setFormData({
+          ...formData,
+          imageUrls: formData.imageUrls.concat(urls),
+        });
+        console.log(formData);
+        setUploading(false);
+      });
+
+      // await fetch("/api/listing/listing-image", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-type": "Application/json",
+      //   },
+      //   body: JSON.stringify({
+      //     email: currentUser.email,
+      //     imageges: imageUrls,
+      //   }),
+      // });
+      setImageUploadError(false);
+    } catch (error) {
+      setUploadingStatus("An error occured during the upload.");
+      setImageUploadError(true);
+      setUploading(false);
+    }
+  };
+
+  const handleImageRemove = (index) => {
+    setFormData({
+      ...formData,
+      imageUrls: formData.imageUrls.filter((_, i) => i !== index),
+    });
+  };
+
   return (
     <main className="p-3 max-w-4xl mx-auto">
       <h1 className="text-3xl font-semibold text-center my-7">
@@ -121,11 +221,40 @@ export default function CreateListing() {
               id="images"
               accept="image/*"
               multiple
+              onChange={handleFileChange}
             />
-            <button className="p-3 border border-green-700 text-gtreen rounded hover:shadow-lg disable:opacity-80">
-              Upload
+            <button
+              disabled={uploading}
+              onClick={handleImageSubmit}
+              type="button"
+              className="p-3 border border-green-700 text-gtreen rounded hover:shadow-lg disable:opacity-80"
+            >
+              {uploading ? 'Uploading... ' : 'upload'}
             </button>
-          </div>
+          </div>  
+          <p className="text-red-500">
+            {imageUploadError ? imageUploadError : ""}
+          </p>
+          {file.length > 0 &&
+            formData.imageUrls.map((url, index) => (
+              <div
+                className="flex justify-between items-center p-3 border "
+                key={url}
+              >
+                <img
+                  key={url}
+                  className="h-20 w-20 object-cover rounded-lg"
+                  src={url}
+                />
+                <button
+                  type="button"
+                  onClick={() => handleImageRemove(index)}
+                  className="p-3 text-red-600 uppercase hover:opacity-90"
+                >
+                  delete
+                </button>
+              </div>
+            ))}
           <button className="p-3 rounded-lg bg-slate-700 text-white uppercase hover:opacity-95 disabled:opacity-80">
             Create Listing
           </button>
