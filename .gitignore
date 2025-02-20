@@ -9,7 +9,7 @@ yarn-error.log*
 node_modules/
 
 # Build directories
-dist/
+# dist/
 build/
 
 # Environment variables
