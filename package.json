@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon api/index.js",
-    "start": "node api/index.js"
+    "start": "node api/index.js",
+    "build":"npm install && npm install --prefix client && npm run build --prefix client"
   },
   "repository": {
     "type": "git",
@@ -17,7 +18,6 @@
     "url": "https://github.com/adilummar/Estate-project/issues"
   },
   "homepage": "https://github.com/adilummar/Estate-project#readme",
-  "description": "",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.5.1",
@@ -28,5 +28,10 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.3",
     "nodemon": "^3.1.9"
-  }
+  },
+  "devDependencies": {
+    "vite": "^6.0.11"
+  },
+  "keywords": [],
+  "description": ""
 }

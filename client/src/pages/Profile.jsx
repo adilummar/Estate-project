@@ -13,6 +13,8 @@ import {
   userSignOutSuccess,
 } from "../redux/user/userSlice";
 import { Link, useNavigate } from "react-router-dom";
+import { current } from "@reduxjs/toolkit";
+import { set } from "mongoose";
 // import { cloudinaryConfig } from "../../../api/cloudinary/cloudinary.js";
 
 export default function Profile() {
@@ -22,6 +24,9 @@ export default function Profile() {
   const { currentUser, loading, error } = useSelector((state) => state.user);
   const [formData, setFormData] = useState({});
   const [userCreated, setUserCreated] = useState(false);
+  const [showListingError, setShowListingError] = useState(false);
+  const [userListings, setUserListings] = useState([]);
+  const [listingError, setListingError] = useState("");
   const fileRef = useRef(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -145,9 +150,46 @@ export default function Profile() {
         return;
       }
       dispatch(userSignOutSuccess(data));
-      navigate('/sign-in')
+      navigate("/sign-in");
     } catch (error) {
       dispatch(userSignOutFailure(error.message));
+    }
+  };
+
+  const handleShowListing = async () => {
+    try {
+      setShowListingError(false);
+      const res = await fetch(`/api/user/listings/${currentUser._id}`);
+      const data = await res.json();
+      if (data.success === false) {
+        setShowListingError(true);
+        return;
+      }
+
+      setUserListings(data);
+    } catch (error) {
+      showListingError(true);
+    }
+  };
+
+  const handleDeleteListing = async (id) => {
+    try {
+      const listing = await fetch(`/api/listing/delete/${id}`, {
+        method: "DELETE",
+      });
+      const data = await listing.json();
+
+      if (data.success === false) {
+        console.log(data.message);
+        return;
+      }
+
+      setUserListings((prev) => {
+        prev.filter((listing) => listing._id !== id);
+      });
+    } catch (error) {
+      setListingError("something went wrong on deleting listing");
+      alert(listingError);
     }
   };
 
@@ -207,7 +249,12 @@ export default function Profile() {
         >
           {loading ? "loading" : "update"}
         </button>
-        <Link to={'/create-listing'} className="bg-green-800 text-white p-3 rounded-lg uppercase text-center hover:opacity-95">Create listing</Link>
+        <Link
+          to={"/create-listing"}
+          className="bg-green-800 text-white p-3 rounded-lg uppercase text-center hover:opacity-95"
+        >
+          Create listing
+        </Link>
       </form>
       <div className="flex justify-between mt-5">
         <span
@@ -225,6 +272,50 @@ export default function Profile() {
       <p className="text-green-700 mt-5">
         {userCreated ? "user updated successfuly" : ""}
       </p>
+      <button onClick={handleShowListing} className="text-green-800 w-full">
+        show listings
+      </button>
+      <p className="text-red-800 w-full">
+        {showListingError ? "something went wrong" : ""}
+      </p>
+      {userListings && userListings.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <h1 className="text-center mt-7 text-2xl font-semibold">
+            your listing
+          </h1>
+          {userListings.map((listing) => (
+            <div
+              key={listing._id}
+              className="p-3 flex justify-between items-center gap-4  border"
+            >
+              <Link to={`/listing/${listing._id}`}>
+                <img
+                  src={listing.imageUrls[0]}
+                  alt="listing image"
+                  className="h-16 w-16 object-cover"
+                />
+              </Link>
+              <Link
+                className="flex-1 text-slate-700 font-semibold hover:underline truncate f"
+                to={`/listing/${listing._id}`}
+              >
+                <p className="">{listing.name}</p>
+              </Link>
+              <div className="flex flex-col ">
+                <button
+                  className="uppercase text-red-700"
+                  onClick={() => handleDeleteListing(listing._id)}
+                >
+                  Delete
+                </button>
+                <Link to={`/update-listing/${listing._id}`}>
+                  <button className="uppercase text-green-700">Edit</button>
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

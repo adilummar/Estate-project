@@ -1,9 +1,9 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
-export default function CreateListing() {
+export default function UpdateListing() {
   const [file, setFile] = useState([]);
   const navigate = useNavigate();
   const [progress, setProgress] = useState([]);
@@ -28,10 +28,22 @@ export default function CreateListing() {
     parking: false,
     furnished: false,
   });
+  const params = useParams();
 
   useEffect(() => {
-    console.log("Updated imageUrls:", formData.imageUrls);
-  }, [formData.imageUrls]);
+    const fetchListing = async () => {
+      const res = await fetch(`/api/listing/find/${params.id}`);
+      const data = await res.json();
+      if (data.success === false) {
+        console.log(error);
+        return;
+      }
+      setFormData(data);
+      console.log(params.id);
+    };
+
+    fetchListing();
+  }, []);
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
@@ -168,7 +180,7 @@ export default function CreateListing() {
       console.log("formData before file sub", updatedData);
 
       // Submit the form data to the server
-      const res = await fetch("/api/listing/create", {
+      const res = await fetch(`/api/listing/update/${params.id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -183,12 +195,9 @@ export default function CreateListing() {
 
       if (data.success === false) {
         setError(data.message);
-
-      } else {
-        // Handle successful submission (e.g., redirect or show a success message)
-        navigate(`/listing/${data._id}`);
-        console.log("Listing created successfully:", data);
+        return;
       }
+      navigate(`/profile`);
     } catch (error) {
       setError(error.message);
       setLoading(false);
@@ -198,7 +207,7 @@ export default function CreateListing() {
   return (
     <main className="p-3 max-w-4xl mx-auto">
       <h1 className="text-3xl font-semibold text-center my-7">
-        Create a listing
+        Updating the list
       </h1>
       <form
         onSubmit={handleFormSubmit}
@@ -331,24 +340,22 @@ export default function CreateListing() {
                 <span className="text-xs">($ / month)</span>
               </div>
             </div>
-            {formData.offer === true && (
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  id="discountPrice"
-                  min={1}
-                  max={10000}
-                  required
-                  className="p-3 border border-gray-300 rounded-lg"
-                  onChange={handleInputChange}
-                  value={formData.discountPrice}
-                />
-                <div className="flex flex-col items-center">
-                  <p>Discounted Price</p>
-                  <span className="text-xs">($ / month)</span>
-                </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                id="discountPrice"
+                min={1}
+                max={10}
+                required
+                className="p-3 border border-gray-300 rounded-lg"
+                onChange={handleInputChange}
+                value={formData.discountPrice}
+              />
+              <div className="flex flex-col items-center">
+                <p>Discounted Price</p>
+                <span className="text-xs">($ / month)</span>
               </div>
-            )}
+            </div>
           </div>
         </div>
         <div className="flex flex-col flex-1 gap-4">
@@ -379,36 +386,32 @@ export default function CreateListing() {
           <p className="text-red-500">
             {imageUploadError ? imageUploadError : ""}
           </p>
-          {file.length > 0 &&
-            formData.imageUrls.map((url, index) => (
-              <div
-                className="flex justify-between items-center p-3 border "
+          {formData.imageUrls.map((url, index) => (
+            <div
+              className="flex justify-between items-center p-3 border "
+              key={url}
+            >
+              <img
                 key={url}
+                className="h-20 w-20 object-cover rounded-lg"
+                src={url}
+              />
+              <button
+                type="button"
+                onClick={() => handleImageRemove(index)}
+                className="p-3 text-red-600 uppercase hover:opacity-90"
               >
-                <img
-                  key={url}
-                  className="h-20 w-20 object-cover rounded-lg"
-                  src={url}
-                />
-                <button
-                  type="button"
-                  onClick={() => handleImageRemove(index)}
-                  className="p-3 text-red-600 uppercase hover:opacity-90"
-                >
-                  delete
-                </button>
-              </div>
-            ))}
+                delete
+              </button>
+            </div>
+          ))}
           <button
             className="p-3 rounded-lg bg-slate-700 text-white uppercase hover:opacity-95 disabled:opacity-80"
             disabled={
-              loading ||
-              uploading ||
-              !imagesUploaded || // Disable if images are not uploaded
-              formData.imageUrls.length === 0 // Disable if no images are in the array
+              loading || uploading || formData.imageUrls.length === 0 // Disable if no images are in the array
             }
           >
-            {loading ? "Creating..." : "Create Listing"}
+            {loading ? "Updating..." : "Update Listing"}
           </button>
           {error && <p className="text-red-500">{error}</p>}
         </div>

@@ -7,8 +7,10 @@ import authRouter from "./routes/auth.route.js";
 import imageupload from './routes/imageUpload.route.js'
 import cookieParser from "cookie-parser";
 import listingRouter from './routes/listing.route.js'
+import path from 'path'
 
 dotenv.config();
+path.resolve()
 
 const app = express();
 app.use(cors())
@@ -27,6 +29,11 @@ app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/upload", imageupload);
 app.use("/api/listing", listingRouter)
+app.use(express.static(path.join(__dirname,'/client/dist')));
+
+app.get('*',(req,res)=>{
+  res.sendFile(path.join(__dirname,'client','dist','index.html'))
+})
 
 app.listen(3000, () => {
   console.log("app is listening to post 3000");

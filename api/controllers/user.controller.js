@@ -1,4 +1,6 @@
+import Listing from "../models/listing.model.js";
 import User from "../models/user.model.js";
+// import User from "../models/user.model.js";
 import { errorHandler } from "../utils/error.js";
 import bcryptjs from "bcryptjs";
 
@@ -40,6 +42,30 @@ export const deleteUser = async (req, res, next) => {
     return next(errorHandler(401, "you can only delete your own account"));
 
   await User.findByIdAndDelete(req.params.id);
-  res.clearCookie('acccess-token')
+  res.clearCookie("acccess-token");
   res.status(200).json("user deleted successfuly");
+};
+
+export const getUserListings = async (req, res, next) => {
+  if (req.user.id === req.params.id) {
+    try {
+      const data = await Listing.find({ userRef: req.params.id });
+      res.status(200).json(data);
+    } catch (error) {
+      next(error);
+    }
+  } else {
+    return next(errorHandler(401, "you can only see your own listings"));
+  }
+};
+
+export const getUserDetails = async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    return next(errorHandler(404, "user not found"));
+  }
+
+  const { password: pass, ...rest } = user._doc;
+  res.status(200).json(rest);
 };
