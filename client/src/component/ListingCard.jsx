@@ -30,7 +30,7 @@ export default function ListingCard({ list }) {
               : list.regularPrice.toLocaleString("en-US")}
               {list.type === 'rent' && '/month'}
           </p>
-          <div className="text-slate-700 flex">
+          <div className="text-slate-700 flex gap-2">
             <div className="font-bold text-xs">
                 {list.bedrooms > 1 ? `${list.bedrooms} beds` :`${list.bedrooms} bed` }
             </div>
